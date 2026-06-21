@@ -178,19 +178,19 @@
 <div id="addModal" class="modal">
   <div class="modal-content">
     <h3>新規車両の追加</h3>
-    <div class="form-group"><label>車両名</label><input type="text" id="vehicle"></div>
-    <div class="form-group"><label>製品番号</label><input type="text" id="productNum"></div>
-    <div class="form-group"><label>総数</label><input type="number" id="totalCount" value="1"></div>
-    <div class="form-group"><label>使用可能数</label><input type="number" id="usableCount" value="1"></div>
+    <div class="form-group"><label for="vehicle">車両名</label><input type="text" id="vehicle"></div>
+    <div class="form-group"><label for="productNum">製品番号</label><input type="text" id="productNum"></div>
+    <div class="form-group"><label for="totalCount">総数</label><input type="number" id="totalCount" value="1"></div>
+    <div class="form-group"><label for="usableCount">使用可能数</label><input type="number" id="usableCount" value="1"></div>
     <div class="form-group">
-      <label>モーター</label>
+      <label for="motor">モーター</label>
       <select id="motor"><option>○</option><option>✕</option><option>なし</option></select>
     </div>
     <div class="form-group">
-      <label>ライト</label>
+      <label Friday for="light">ライト</label>
       <select id="light"><option>○</option><option>✕</option><option>なし</option></select>
     </div>
-    <div class="form-group"><label>その他・備考</label><input type="text" id="other"></div>
+    <div class="form-group"><label for="other">その他・備考</label><input type="text" id="other"></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('addModal')">キャンセル</button>
       <button class="btn btn-primary" onclick="submitForm()">データを追加</button>
@@ -202,19 +202,19 @@
   <div class="modal-content">
     <h3>車両データの変更</h3>
     <input type="hidden" id="editRowNum">
-    <div class="form-group"><label>車両名</label><input type="text" id="editVehicle"></div>
-    <div class="form-group"><label>製品番号</label><input type="text" id="editProductNum"></div>
-    <div class="form-group"><label>総数</label><input type="number" id="editTotalCount"></div>
-    <div class="form-group"><label>使用可能数</label><input type="number" id="editUsableCount"></div>
+    <div class="form-group"><label for="editVehicle">車両名</label><input type="text" id="editVehicle"></div>
+    <div class="form-group"><label for="editProductNum">製品番号</label><input type="text" id="editProductNum"></div>
+    <div class="form-group"><label for="editTotalCount">総数</label><input type="number" id="editTotalCount"></div>
+    <div class="form-group"><label for="editUsableCount">使用可能数</label><input type="number" id="editUsableCount"></div>
     <div class="form-group">
-      <label>モーター</label>
+      <label for="editMotor">モーター</label>
       <select id="editMotor"><option>○</option><option>✕</option><option>なし</option></select>
     </div>
     <div class="form-group">
-      <label>ライト</label>
+      <label for="editLight">ライト</label>
       <select id="editLight"><option>○</option><option>✕</option><option>なし</option></select>
     </div>
-    <div class="form-group"><label>その他・備考</label><input type="text" id="editOther"></div>
+    <div class="form-group"><label for="editOther">その他・備考</label><input type="text" id="editOther"></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('editModal')">キャンセル</button>
       <button class="btn btn-warning" onclick="executeUpdate()">変更を保存</button>
@@ -230,10 +230,9 @@
 
   window.onload = function() {
     checkAuth();
-    refreshData(); // ページを開いた時に1回だけデータを読み込む
+    refreshData(); 
   };
 
-  // 🔒 アドレスのチェックと画面表示の切り替え
   function checkAuth() {
     const savedEmail = localStorage.getItem("railway_user_email");
     const authFormArea = document.getElementById("authFormArea");
@@ -250,7 +249,6 @@
     }
   }
 
-  // 🛡️ アドレス登録時の「早稲田ドメイン」限定チェック
   function saveEmail() {
     const emailInput = document.getElementById("userEmailInput").value.trim().toLowerCase();
     if (!emailInput.endsWith("@waseda-h.ed.jp")) {
@@ -269,7 +267,6 @@
     }
   }
 
-  // 🕵️‍♂️ 操作時に早稲田アカウントが入っているか厳重チェックする関数
   function verifyWasedaUser() {
     const savedEmail = localStorage.getItem("railway_user_email");
     if (!savedEmail || !savedEmail.endsWith("@waseda-h.ed.jp")) {
@@ -279,7 +276,6 @@
     return savedEmail;
   }
 
-  // 📡 GASとの通信用関数
   async function callGasApi(action, data = {}) {
     const savedEmail = localStorage.getItem("railway_user_email");
     const payload = { action, userName: savedEmail || "ゲスト閲覧者", ...data };
@@ -339,9 +335,8 @@
     document.getElementById('tableBody').innerHTML = html;
   }
 
-  // ➕ データ追加（早稲田チェック ＋ 管理者パスワード必須）
   async function submitForm() {
-    if (!verifyWasedaUser()) return; // 🛑 早稲田チェック
+    if (!verifyWasedaUser()) return; 
 
     const vehicle = document.getElementById("vehicle").value.trim();
     const productNum = document.getElementById("productNum").value.trim();
@@ -367,9 +362,8 @@
     }
   }
 
-  // 📝 データ変更（早稲田チェック ＋ 管理者パスワード必須）
   async function executeUpdate() {
-    if (!verifyWasedaUser()) return; // 🛑 早稲田チェック
+    if (!verifyWasedaUser()) return; 
 
     const password = prompt("【管理者用】変更用パスワードを入力してください：");
     if (!password) return;
@@ -392,9 +386,8 @@
     }
   }
 
-  // ❌ データ削除（早稲田チェック ＋ 管理者パスワード必須）
   async function deleteRow(rowNum) {
-    if (!verifyWasedaUser()) return; // 🛑 早稲田チェック
+    if (!verifyWasedaUser()) return; 
 
     if (!confirm("本当にこの車両データを削除しますか？")) return;
     const password = prompt("【管理者用】削除用パスワードを入力してください：");
@@ -409,13 +402,13 @@
   }
 
   function openAddModal() { 
-    if (!verifyWasedaUser()) return; // 🛑 開く前にもチェック
+    if (!verifyWasedaUser()) return; 
     document.getElementById("addModal").style.display = "flex"; 
   }
   function closeModal(id) { document.getElementById(id).style.display = "none"; }
   
   function openEditModal(row) {
-    if (!verifyWasedaUser()) return; // 🛑 開く前にもチェック
+    if (!verifyWasedaUser()) return; 
     document.getElementById("editRowNum").value = row.rowNum;
     document.getElementById("editVehicle").value = row.vehicle;
     document.getElementById("editProductNum").value = row.productNum;
