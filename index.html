@@ -148,7 +148,7 @@
     </div>
 
     <button class="btn btn-success" id="addVehicleBtn" onclick="openAddModal()" style="margin-left: 15px;">＋ 新規車両を追加</button>
-    <span id="syncStatus" style="font-size: 12px; color: #7f8c8d; margin-left: auto;">同期中...</span>
+    <span id="syncStatus" style="font-size: 12px; color: #7f8c8d; margin-left: auto;">待機中</span>
   </div>
 
   <div class="table-container">
@@ -231,8 +231,7 @@
 
   window.onload = function() {
     checkAuth();
-    refreshData();
-    setInterval(refreshData, 5000); // 5秒おきの自動データ更新（誰でも常に見られる状態）
+    refreshData(); // ページを開いた時に1回だけデータを読み込む
   };
 
   // 🔒 アドレスのチェックと画面表示の切り替え
@@ -296,7 +295,7 @@
         body: JSON.stringify(payload)
       });
       const result = await response.json();
-      document.getElementById("syncStatus").innerText = "自動同期完了";
+      document.getElementById("syncStatus").innerText = "同期完了";
       if (!result.success) throw new Error(result.error);
       return result.data;
     } catch (error) {
