@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>鉄道模型 車両管理システム</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background-color: #f4f6f8;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    h2 {
+      margin-top: 0;
+      color: #2c3e50;
+      border-bottom: 2px solid #ecf0f1;
+      padding-bottom: 10px;
+    }
+    
+    /* 🔑 編集者用・学内認証ゾーン */
+    .user-zone {
+      background-color: #eef2f5;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .user-zone label {
+      font-weight: bold;
+      color: #34495e;
+      font-size: 13px;
+    }
+    .user-zone input[type="email"] {
+      padding: 8px 12px;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 250px;
+    }
+    .status-badge {
+      background-color: #2ecc71;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    /* 🔘 ボタン関係 */
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    .btn-primary { background-color: #3498db; color: white; }
+    .btn-primary:hover { background-color: #2980b9; }
+    .btn-success { background-color: #2ecc71; color: white; }
+    .btn-success:hover { background-color: #27ae60; }
+    .btn-warning { background-color: #f39c12; color: white; }
+    .btn-warning:hover { background-color: #d35400; }
+    .btn-danger { background-color: #e74c3c; color: white; }
+    .btn-danger:hover { background-color: #c0392b; }
+    .btn-secondary { background-color: #95a5a6; color: white; }
+    .btn-secondary:hover { background-color: #7f8c8d; }
+
+    /* 📊 テーブルデザイン */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 15px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background-color: #4a5568;
+      color: #ffffff;
+      padding: 12px;
+      font-weight: 600;
+    }
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #2d3748;
+    }
+    tr:nth-child(even) { background-color: #f8fafc; }
+    tr:hover { background-color: #f1f5f9; }
+
+    /* 🧱 ポップアップモーダル */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; }
+    .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>🚄 鉄道模型 車両データ管理</h2>
+  
+  <div class="user-zone">
+    <div id="authFormArea" style="display: flex; align-items: center; gap: 10px;">
+      <label for="userEmailInput">✍️ データの追加・編集を行う方へ：早稲田アドレス（@waseda-h.ed.jp）を登録してください（閲覧のみは不要）:</label>
+      <input type="email" id="userEmailInput" placeholder="〜〜@waseda-h.ed.jp">
+      <button class="btn btn-primary" onclick="saveEmail()">登録</button>
+    </div>
+
+    <div id="welcomeArea" style="display: none; align-items: center; gap: 10px;">
+      <span class="status-badge">✓ 編集権限あり(Waseda)</span>
+      <span id="savedEmailDisplay" style="font-weight: bold; color: #2c3e50;"></span>
+      <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="clearEmail()">解除</button>
+    </div>
+
+    <button class="btn btn-success" id="addVehicleBtn" onclick="openAddModal()" style="margin-left: 15px;">＋ 新規車両を追加</button>
+    <span id="syncStatus" style="font-size: 12px; color: #7f8c8d; margin-left: auto;">同期中...</span>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>車両名</th>
+          <th>製品番号</th>
+          <th>総数</th>
+          <th>可動数</th>
+          <th>モーター</th>
+          <th>ライト</th>
+          <th>その他・備考</th>
+          <th>更新日時</th>
+          <th>最終記入者</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr>
+          <td colspan="10" style="text-align:center; color:#999; padding: 30px;">データを読み込み中...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="addModal" class="modal">
+  <div class="modal-content">
+    <h3>新規車両の追加</h3>
+    <div class="form-group"><label>車両名</label><input type="text" id="vehicle"></div>
+    <div class="form-group"><label>製品番号</label><input type="text" id="productNum"></div>
+    <div class="form-group"><label>総数</label><input type="number" id="totalCount" value="1"></div>
+    <div class="form-group"><label>使用可能数</label><input type="number" id="usableCount" value="1"></div>
+    <div class="form-group">
+      <label>モーター</label>
+      <select id="motor"><option>○</option><option>✕</option><option>なし</option></select>
+    </div>
+    <div class="form-group">
+      <label>ライト</label>
+      <select id="light"><option>○</option><option>✕</option><option>なし</option></select>
+    </div>
+    <div class="form-group"><label>その他・備考</label><input type="text" id="other"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('addModal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="submitForm()">データを追加</button>
+    </div>
+  </div>
+</div>
+
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <h3>車両データの変更</h3>
+    <input type="hidden" id="editRowNum">
+    <div class="form-group"><label>車両名</label><input type="text" id="editVehicle"></div>
+    <div class="form-group"><label>製品番号</label><input type="text" id="editProductNum"></div>
+    <div class="form-group"><label>総数</label><input type="number" id="editTotalCount"></div>
+    <div class="form-group"><label>使用可能数</label><input type="number" id="editUsableCount"></div>
+    <div class="form-group">
+      <label>モーター</label>
+      <select id="editMotor"><option>○</option><option>✕</option><option>なし</option></select>
+    </div>
+    <div class="form-group">
+      <label>ライト</label>
+      <select id="editLight"><option>○</option><option>✕</option><option>なし</option></select>
+    </div>
+    <div class="form-group"><label>その他・備考</label><input type="text" id="editOther"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('editModal')">キャンセル</button>
+      <button class="btn btn-warning" onclick="executeUpdate()">変更を保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 🌐 【重要】GASのWebアプリURLをここに貼り付けてください！
+  const GAS_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnSeQ8gaHTY1V89pTQvuL6ByAJpToe_Tuqwz8ZAWDsvrul_QaX-IhYxR-mKdKm787MO0WGOR5WZfctRdT_sTiHipiZ4Hl57ZbbOErPvRYvDHy15YYD0O1dB05aqFwF9p-m-NjEeXBexEy6s8JcUt-Fyq8Rjgh8mf5QYaxjbo9OkBZnoV7oAM7w0Zjg2kWkildZHyY2o6rw8q9J3IHIrKP6nCFxYErSkwDISQeo8wcczlHAVOClfyHfD4YmnRhRHlEWfGeQHCrUxwRzIf2V3kc7UXP7lZdw&lib=M_1bMlh-tzL72onJ1tkNohmxdQLWoTI6O"; 
+
+  let currentDataList = [];
+
+  window.onload = function() {
+    checkAuth();
+    refreshData();
+    setInterval(refreshData, 5000); // 5秒おきの自動データ更新（誰でも常に見られる状態）
+  };
+
+  // 🔒 アドレスのチェックと画面表示の切り替え
+  function checkAuth() {
+    const savedEmail = localStorage.getItem("railway_user_email");
+    const authFormArea = document.getElementById("authFormArea");
+    const welcomeArea = document.getElementById("welcomeArea");
+
+    if (savedEmail && savedEmail.endsWith("@waseda-h.ed.jp")) {
+      authFormArea.style.display = "none";
+      welcomeArea.style.display = "flex";
+      document.getElementById("savedEmailDisplay").innerText = savedEmail;
+    } else {
+      authFormArea.style.display = "flex";
+      welcomeArea.style.display = "none";
+      if (savedEmail) localStorage.removeItem("railway_user_email");
+    }
+  }
+
+  // 🛡️ アドレス登録時の「早稲田ドメイン」限定チェック
+  function saveEmail() {
+    const emailInput = document.getElementById("userEmailInput").value.trim().toLowerCase();
+    if (!emailInput.endsWith("@waseda-h.ed.jp")) {
+      alert("【登録拒否】早稲田アカウント（@waseda-h.ed.jp）以外のメールアドレスは登録できません。");
+      return;
+    }
+    localStorage.setItem("railway_user_email", emailInput);
+    checkAuth();
+    alert("認証しました！編集機能が有効になります。");
+  }
+
+  function clearEmail() {
+    if (confirm("登録を解除しますか？（閲覧のみのモードに戻ります）")) {
+      localStorage.removeItem("railway_user_email");
+      checkAuth();
+    }
+  }
+
+  // 🕵️‍♂️ 操作時に早稲田アカウントが入っているか厳重チェックする関数
+  function verifyWasedaUser() {
+    const savedEmail = localStorage.getItem("railway_user_email");
+    if (!savedEmail || !savedEmail.endsWith("@waseda-h.ed.jp")) {
+      alert("【操作拒否】データの追加・変更・削除には、画面上部で早稲田アカウント（@waseda-h.ed.jp）の登録が必要です。");
+      return false;
+    }
+    return savedEmail;
+  }
+
+  // 📡 GASとの通信用関数
+  async function callGasApi(action, data = {}) {
+    const savedEmail = localStorage.getItem("railway_user_email");
+    const payload = { action, userName: savedEmail || "ゲスト閲覧者", ...data };
+    document.getElementById("syncStatus").innerText = "同期中...";
+
+    try {
+      const response = await fetch(GAS_URL, {
+        method: "POST",
+        mode: "cors",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      document.getElementById("syncStatus").innerText = "自動同期完了";
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    } catch (error) {
+      console.error("通信エラー:", error);
+      document.getElementById("syncStatus").innerText = "通信エラー";
+      return null;
+    }
+  }
+
+  async function refreshData() {
+    const data = await callGasApi("get");
+    if (data) { renderTable(data, false); }
+  }
+
+  function renderTable(data, isForce) {
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      if (currentDataList && currentDataList.length > 0) return;
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="10" style="text-align:center;color:#999;">データがありません</td></tr>';
+      currentDataList = [];
+      return;
+    }
+
+    currentDataList = data;
+    let html = "";
+    
+    data.forEach(row => {
+      html += `<tr>
+        <td><strong>${escapeHtml(row.vehicle)}</strong></td>
+        <td>${escapeHtml(row.productNum)}</td>
+        <td>${escapeHtml(row.totalCount)}</td>
+        <td>${escapeHtml(row.usableCount)}</td>
+        <td>${escapeHtml(row.motor)}</td>
+        <td>${escapeHtml(row.light)}</td>
+        <td>${escapeHtml(row.other || "-")}</td>
+        <td style="font-size:11px; color:#7f8c8d;">${escapeHtml(row.updatedAt)}</td>
+        <td><span style="background:#e1f5fe; padding:2px 6px; border-radius:4px; font-size:12px; color:#0288d1;">${escapeHtml(row.userName)}</span></td>
+        <td>
+          <button class="btn btn-warning" style="padding:4px 8px; font-size:12px;" onclick="openEditModal(${JSON.stringify(row).replace(/"/g, '&quot;')})">変更</button>
+          <button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="deleteRow(${row.rowNum})">削除</button>
+        </td>
+      </tr>`;
+    });
+    document.getElementById('tableBody').innerHTML = html;
+  }
+
+  // ➕ データ追加（早稲田チェック ＋ 管理者パスワード必須）
+  async function submitForm() {
+    if (!verifyWasedaUser()) return; // 🛑 早稲田チェック
+
+    const vehicle = document.getElementById("vehicle").value.trim();
+    const productNum = document.getElementById("productNum").value.trim();
+    const totalCount = document.getElementById("totalCount").value;
+    const usableCount = document.getElementById("usableCount").value;
+    const motor = document.getElementById("motor").value;
+    const light = document.getElementById("light").value;
+    const other = document.getElementById("other").value.trim();
+
+    if (!vehicle) { alert("車両名を入力してください"); return; }
+
+    const password = prompt("【管理者用】追加用パスワードを入力してください：");
+    if (!password) return;
+
+    const newData = await callGasApi("add", { password, vehicle, productNum, totalCount, usableCount, motor, light, other });
+    if (newData) {
+      renderTable(newData, true);
+      closeModal('addModal');
+      document.getElementById("vehicle").value = "";
+      document.getElementById("productNum").value = "";
+    } else {
+      alert("追加に失敗しました。パスワードが間違っている可能性があります。");
+    }
+  }
+
+  // 📝 データ変更（早稲田チェック ＋ 管理者パスワード必須）
+  async function executeUpdate() {
+    if (!verifyWasedaUser()) return; // 🛑 早稲田チェック
+
+    const password = prompt("【管理者用】変更用パスワードを入力してください：");
+    if (!password) return;
+
+    const rowNum = document.getElementById("editRowNum").value;
+    const vehicle = document.getElementById("editVehicle").value.trim();
+    const productNum = document.getElementById("editProductNum").value.trim();
+    const totalCount = document.getElementById("editTotalCount").value;
+    const usableCount = document.getElementById("editUsableCount").value;
+    const motor = document.getElementById("editMotor").value;
+    const light = document.getElementById("editLight").value;
+    const other = document.getElementById("editOther").value.trim();
+
+    const newData = await callGasApi("update", { password, rowNum, vehicle, productNum, totalCount, usableCount, motor, light, other });
+    if (newData) {
+      renderTable(newData, true);
+      closeModal('editModal');
+    } else {
+      alert("変更に失敗しました。パスワードを確認してください。");
+    }
+  }
+
+  // ❌ データ削除（早稲田チェック ＋ 管理者パスワード必須）
+  async function deleteRow(rowNum) {
+    if (!verifyWasedaUser()) return; // 🛑 早稲田チェック
+
+    if (!confirm("本当にこの車両データを削除しますか？")) return;
+    const password = prompt("【管理者用】削除用パスワードを入力してください：");
+    if (!password) return;
+
+    const newData = await callGasApi("delete", { password, rowNum });
+    if (newData) {
+      renderTable(newData, true);
+    } else {
+      alert("削除に失敗しました。パスワードを確認してください。");
+    }
+  }
+
+  function openAddModal() { 
+    if (!verifyWasedaUser()) return; // 🛑 開く前にもチェック
+    document.getElementById("addModal").style.display = "flex"; 
+  }
+  function closeModal(id) { document.getElementById(id).style.display = "none"; }
+  
+  function openEditModal(row) {
+    if (!verifyWasedaUser()) return; // 🛑 開く前にもチェック
+    document.getElementById("editRowNum").value = row.rowNum;
+    document.getElementById("editVehicle").value = row.vehicle;
+    document.getElementById("editProductNum").value = row.productNum;
+    document.getElementById("editTotalCount").value = row.totalCount;
+    document.getElementById("editUsableCount").value = row.usableCount;
+    document.getElementById("editMotor").value = row.motor;
+    document.getElementById("editLight").value = row.light;
+    document.getElementById("editOther").value = row.other === "-" ? "" : row.other;
+    document.getElementById("editModal").style.display = "flex";
+  }
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str).replace(/[&<>"']/g, function(m) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+    });
+  }
+</script>
+</body>
+</html>
