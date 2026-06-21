@@ -163,13 +163,12 @@
           <th>ライト</th>
           <th>その他・備考</th>
           <th>更新日時</th>
-          <th>最終記入者</th>
           <th>操作</th>
         </tr>
       </thead>
       <tbody id="tableBody">
         <tr>
-          <td colspan="10" style="text-align:center; color:#999; padding: 30px;">データを読み込み中...</td>
+          <td colspan="9" style="text-align:center; color:#999; padding: 30px;">データを読み込み中...</td>
         </tr>
       </tbody>
     </table>
@@ -313,7 +312,7 @@
   function renderTable(data, isForce) {
     if (!data || !Array.isArray(data) || data.length === 0) {
       if (currentDataList && currentDataList.length > 0) return;
-      document.getElementById('tableBody').innerHTML = '<tr><td colspan="10" style="text-align:center;color:#999;">データがありません</td></tr>';
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#999;">データがありません</td></tr>';
       currentDataList = [];
       return;
     }
@@ -331,7 +330,6 @@
         <td>${escapeHtml(row.light)}</td>
         <td>${escapeHtml(row.other || "-")}</td>
         <td style="font-size:11px; color:#7f8c8d;">${escapeHtml(row.updatedAt)}</td>
-        <td><span style="background:#e1f5fe; padding:2px 6px; border-radius:4px; font-size:12px; color:#0288d1;">${escapeHtml(row.userName)}</span></td>
         <td>
           <button class="btn btn-warning" style="padding:4px 8px; font-size:12px;" onclick="openEditModal(${JSON.stringify(row).replace(/"/g, '&quot;')})">変更</button>
           <button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="deleteRow(${row.rowNum})">削除</button>
