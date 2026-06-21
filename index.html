@@ -178,19 +178,34 @@
 <div id="addModal" class="modal">
   <div class="modal-content">
     <h3>新規車両の追加</h3>
-    <div class="form-group"><label for="vehicle">車両名</label><input type="text" id="vehicle"></div>
-    <div class="form-group"><label for="productNum">製品番号</label><input type="text" id="productNum"></div>
-    <div class="form-group"><label for="totalCount">総数</label><input type="number" id="totalCount" value="1"></div>
-    <div class="form-group"><label for="usableCount">使用可能数</label><input type="number" id="usableCount" value="1"></div>
+    <div class="form-group">
+      <label for="vehicle">車両名</label>
+      <input type="text" id="vehicle" placeholder="車両名を入力">
+    </div>
+    <div class="form-group">
+      <label for="productNum">製品番号</label>
+      <input type="text" id="productNum" placeholder="製品番号を入力">
+    </div>
+    <div class="form-group">
+      <label for="totalCount">総数</label>
+      <input type="number" id="totalCount" value="1">
+    </div>
+    <div class="form-group">
+      <label for="usableCount">使用可能数</label>
+      <input type="number" id="usableCount" value="1">
+    </div>
     <div class="form-group">
       <label for="motor">モーター</label>
       <select id="motor"><option>○</option><option>✕</option><option>なし</option></select>
     </div>
     <div class="form-group">
-      <label Friday for="light">ライト</label>
+      <label for="light">ライト</label>
       <select id="light"><option>○</option><option>✕</option><option>なし</option></select>
     </div>
-    <div class="form-group"><label for="other">その他・備考</label><input type="text" id="other"></div>
+    <div class="form-group">
+      <label for="other">その他・備考</label>
+      <input type="text" id="other" placeholder="備考があれば入力">
+    </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('addModal')">キャンセル</button>
       <button class="btn btn-primary" onclick="submitForm()">データを追加</button>
@@ -201,11 +216,23 @@
 <div id="editModal" class="modal">
   <div class="modal-content">
     <h3>車両データの変更</h3>
-    <input type="hidden" id="editRowNum">
-    <div class="form-group"><label for="editVehicle">車両名</label><input type="text" id="editVehicle"></div>
-    <div class="form-group"><label for="editProductNum">製品番号</label><input type="text" id="editProductNum"></div>
-    <div class="form-group"><label for="editTotalCount">総数</label><input type="number" id="editTotalCount"></div>
-    <div class="form-group"><label for="editUsableCount">使用可能数</label><input type="number" id="editUsableCount"></div>
+    <input type="hidden" id="editRowNum" title="編集対象の行番号">
+    <div class="form-group">
+      <label for="editVehicle">車両名</label>
+      <input type="text" id="editVehicle" placeholder="車両名を入力">
+    </div>
+    <div class="form-group">
+      <label for="editProductNum">製品番号</label>
+      <input type="text" id="editProductNum" placeholder="製品番号を入力">
+    </div>
+    <div class="form-group">
+      <label for="editTotalCount">総数</label>
+      <input type="number" id="editTotalCount">
+    </div>
+    <div class="form-group">
+      <label for="editUsableCount">使用可能数</label>
+      <input type="number" id="editUsableCount">
+    </div>
     <div class="form-group">
       <label for="editMotor">モーター</label>
       <select id="editMotor"><option>○</option><option>✕</option><option>なし</option></select>
@@ -214,7 +241,10 @@
       <label for="editLight">ライト</label>
       <select id="editLight"><option>○</option><option>✕</option><option>なし</option></select>
     </div>
-    <div class="form-group"><label for="editOther">その他・備考</label><input type="text" id="editOther"></div>
+    <div class="form-group">
+      <label for="editOther">その他・備考</label>
+      <input type="text" id="editOther" placeholder="備考があれば入力">
+    </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('editModal')">キャンセル</button>
       <button class="btn btn-warning" onclick="executeUpdate()">変更を保存</button>
